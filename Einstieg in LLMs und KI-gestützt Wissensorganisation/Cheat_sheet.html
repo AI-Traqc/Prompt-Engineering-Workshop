@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortgeschrittene Prompting-Techniken</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            color: #4a5568;
+            font-size: 1.8rem;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h3 {
+            color: #2d3748;
+            font-size: 1.3rem;
+            margin: 25px 0 15px 0;
+        }
+
+        .technique {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .technique:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .best-for {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .prompt-container {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .prompt-box {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 25px;
+            border-radius: 12px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            border: 1px solid #4a5568;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .copy-button:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .copy-button:active {
+            transform: translateY(0);
+        }
+
+        .copy-button.copied {
+            background: #48bb78;
+        }
+
+        .success-factor {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+
+        .success-factor::before {
+            content: "💡 ";
+            margin-right: 8px;
+        }
+
+        p {
+            margin: 15px 0;
+            color: #4a5568;
+        }
+
+        ul {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        li {
+            margin: 8px 0;
+            color: #4a5568;
+        }
+
+        .tips-section {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 40px 0;
+        }
+
+        .tips-section h1 {
+            color: white;
+            -webkit-text-fill-color: white;
+        }
+
+        .tips-section h3 {
+            color: #e2e8f0;
+        }
+
+        .tips-section p, .tips-section li {
+            color: #e2e8f0;
+        }
+
+        .example-list {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .navigation {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: block;
+            color: #667eea;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 2px 0;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .navigation {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="#meta" class="nav-item">Meta Prompting</a>
+        <a href="#rsip" class="nav-item">RSIP</a>
+        <a href="#cad" class="nav-item">CAD</a>
+        <a href="#chi" class="nav-item">CHI</a>
+        <a href="#mps" class="nav-item">MPS</a>
+        <a href="#ccp" class="nav-item">CCP</a>
+        <a href="#hardening" class="nav-item">Hardening</a>
+        <a href="#tips" class="nav-item">KI-Agent Tipps</a>
+    </div>
+
+    <div class="container">
+        <h1>Fortgeschrittene Prompting-Techniken</h1>
+
+        <div id="meta" class="technique">
+            <h2>1. Meta Prompting</h2>
+            <div class="best-for">Am besten geeignet für: Komplexe oder unklare Ziele, Prompt-Optimierung, kollaborative Prompt-Entwicklung</div>
+            
+            <h3>Vorlage:</h3>
+            <div class="prompt-container">
+                <button class="copy-button" onclick="copyPrompt(this)">Kopieren</button>
+                <div class="prompt-box">Du sollst als mein Prompt-Ingenieur fungieren. Ich möchte Folgendes erreichen: 
+[Ziel einfügen]
+
+Bitte wiederhole mir das in deinen eigenen Worten und stelle alle klärenden Fragen.
+Ich werde diese beantworten.
+Dieser Prozess wiederholt sich, bis wir beide bestätigen, dass du ein exaktes Verständnis hast – und erst dann generierst du den finalen Prompt.</div>
+            </div>
+
+            <div class="success-factor">
+                <strong>Erfolgsfaktor:</strong> Iterative Verständnisklärung vor der eigentlichen Prompt-Erstellung führt zu präziseren und effektiveren Prompts.
+            </div>
+        </div>
+
+        <div id="rsip" class="technique">
+            <h2>2. Recursive Self-Improvement Prompting (RSIP)</h2>
+            <div class="best-for">Am besten geeignet für: Kreatives Schreiben, technische Dokumentation, Argumentationsentwicklung</div>
+            
+            <h3>Vorlage:</h3>
+            <div class="prompt-container">
+                <button class="copy-button" onclick="copyPrompt(this)">Kopieren</button>
+                <div class="prompt-box">Ich brauche deine Hilfe bei der Erstellung von [spezifischer Inhalt]. Folge diesem Prozess:
+
+1. Erstelle eine erste Version von [Inhalt]
+2. Bewerte dein eigenes Ergebnis kritisch und identifiziere mindestens 3 spezifische Schwächen
+3. Erstelle eine verbesserte Version, die diese Schwächen behebt
+4. Wiederhole die Schritte 2-3 noch zweimal, wobei jede Iteration auf verschiedene Aspekte fokussiert
+5. Präsentiere deine finale, bestmögliche Version
+
+Für die Bewertung berücksichtige: [spezifische Qualitätskriterien auflisten]</div>
+            </div>
+
+            <div class="success-factor">
+                <strong>Erfolgsfaktor:</strong> Verschiedene Bewertungskriterien für jede Iteration spezifizieren, um Fixierung auf dieselben Verbesserungen zu vermeiden.
+            </div>
+        </div>
+
+        <div id="cad" class="technique">
+            <h2>3. Context-Aware Decomposition (CAD)</h2>
+            <div class="best-for">Am besten geeignet für: Komplexe Programmieraufgaben, Geschäftsstrategie, analytische Probleme</div>
+            
+            <h3>Vorlage:</h3>
+            <div class="prompt-container">
+                <button class="copy-button" onclick="copyPrompt(this)">Kopieren</button>
+                <div class="prompt-box">Ich muss folgendes lösen: [komplexes Problem beschreiben]
+
+Bitte hilf mir dabei:
+1. Kernkomponenten identifizieren (3-5 Komponenten)
+2. Für jede Komponente:
+   a. Erkläre, warum sie für das Gesamtproblem wichtig ist
+   b. Identifiziere benötigte Informationen/Ansätze
+   c. Löse diese spezifische Komponente
+3. Synthetisiere Teillösungen unter Berücksichtigung ihrer Wechselwirkungen
+4. Biete ganzheitliche Lösung, die Komponentenbeziehungen erhält
+5. Führe ein "Denktagebuch", das deine Überlegungen in jedem Schritt erklärt</div>
+            </div>
+
+            <div class="success-factor">
+                <strong>Erfolgsfaktor:</strong> Explizit Beziehungen zwischen Komponenten verfolgen, um Tunnelblick zu vermeiden.
+            </div>
+        </div>
+
+        <div id="chi" class="technique">
+            <h2>4. Controlled Hallucination for Ideation (CHI)</h2>
+            <div class="best-for">Am besten geeignet für: Produktinnovation, Forschungsbrainstorming, kreative Problemlösung</div>
+            
+            <h3>Vorlage:</h3>
+            <div class="prompt-container">
+                <button class="copy-button" onclick="copyPrompt(this)">Kopieren</button>
+                <div class="prompt-box">Ich arbeite an [kreativem Projekt/Problem]. Ich brauche frische, innovative Ideen.
+
+Betreibe "kontrollierte Halluzination" durch:
+1. Generiere 5-7 spekulative Innovationen, die existieren KÖNNTEN, aber derzeit möglicherweise nicht existieren
+2. Für jede:
+   a. Detaillierte Beschreibung bereitstellen
+   b. Theoretische Prinzipien erklären
+   c. Implementierungsanforderungen identifizieren
+3. Jede deutlich als "spekulativ" kennzeichnen
+4. Machbarkeit basierend auf aktueller Technologie/Wissen analysieren
+
+Ziel: Mustererkennung nutzen, um neuartige Ansätze an der Grenze des Möglichen zu identifizieren.</div>
+            </div>
+
+            <div class="success-factor">
+                <strong>Erfolgsfaktor:</strong> Explizite Kennzeichnung und nachträgliche Machbarkeitsanalyse trennen Innovation von Fantasie.
+            </div>
+        </div>
+
+        <div id="mps" class="technique">
+            <h2>5. Multi-Perspective Simulation (MPS)</h2>
+            <div class="best-for">Am besten geeignet für: Politikanalyse, ethische Diskussionen, komplexe Entscheidungsfindung</div>
+            
+            <h3>Vorlage:</h3>
+            <div class="prompt-container">
+                <button class="copy-button" onclick="copyPrompt(this)">Kopieren</button>
+                <div class="prompt-box">Ich brauche eine gründliche Analyse von [Thema/Problem].
+
+Erstelle eine Multi-Perspektiven-Simulation:
+1. Identifiziere 4-5 unterschiedliche, differenzierte Perspektiven (einfache Pro/Contra vermeiden)
+2. Für jede Perspektive:
+   a. Grundannahmen und Werte artikulieren
+   b. Stärkste Argumente und Beweise präsentieren
+   c. Potenzielle blinde Flecken/Schwächen identifizieren
+3. Konstruktiven Dialog zwischen Perspektiven simulieren
+4. Mit integrierter Analyse abschließen, die aufgedeckte Komplexität anerkennt
+5. Intellektuelle Fairness gegenüber allen Perspektiven bewahren, dabei kritisch bleiben</div>
+            </div>
+
+            <div class="success-factor">
+                <strong>Erfolgsfaktor:</strong> Übervereinfachte Dichotomien vermeiden; nuancierte Standpunkte umarmen.
+            </div>
+        </div>
+
+        <div id="ccp" class="technique">
+            <h2>6. Calibrated Confidence Prompting (CCP)</h2>
+            <div class="best-for">Am besten geeignet für: Forschung, Faktenprüfung, Entscheidungsunterstützung</div>
+            
+            <h3>Vorlage:</h3>
+            <div class="prompt-container">
+                <button class="copy-button" onclick="copyPrompt(this)">Kopieren</button>
+                <div class="prompt-box">Ich brauche Informationen über [Thema]. Bei deiner Antwort:
+
+Weise jeder Behauptung Vertrauensniveaus zu:
+- Praktisch sicher (>95%): Grundlegende Fakten mit überwältigender Evidenz
+- Sehr zuversichtlich (80-95%): Starke Evidenz, kleine Ausnahmen möglich
+- Mäßig zuversichtlich (60-80%): Gute Gründe, erhebliche Unsicherheit bleibt
+- Spekulativ (40-60%): Vernünftige Vermutung, sehr unsicher
+- Unbekannt: Unzureichende Information
+
+Für hohe Vertrauensbehauptungen: Basis für Vertrauen erwähnen
+Für mäßige/spekulative Behauptungen: erwähnen, was Vertrauen erhöhen würde
+Genaue Kalibrierung über definitive Aussagen priorisieren</div>
+            </div>
+
+            <div class="success-factor">
+                <strong>Erfolgsfaktor:</strong> Hilft dabei, Informationen in der Entscheidungsfindung angemessen zu gewichten.
+            </div>
+        </div>
+
+        <div id="hardening" class="technique">
+            <h2>7. Methoden zum Prompt Hardening</h2>
+            <div class="best-for">Am besten geeignet für: Arbeit mit fremden Dokumenten</div>
+            
+            <h3>Vorlage:</h3>
+            <div class="prompt-container">
+                <button class="copy-button" onclick="copyPrompt(this)">Kopieren</button>
+                <div class="prompt-box">### Kontext:
+[Fügen Sie alle relevanten Hintergrundinformationen oder den Text ein, der verarbeitet werden soll.]
+
+
+### Aufgabe:
+Bitte führen Sie die folgende(n) Aktion(en) durch:
+1. [Spezifische Anforderung 1, z.B. "Fassen Sie die Hauptpunkte zusammen."]
+2. [Spezifische Anforderung 2, z.B. "Extrahieren Sie alle Datumsangaben."]
+3. [Spezifische Anforderung 3, z.B. "Analysieren Sie den Ton des Textes."]
+- Stellen Sie sicher, dass Ihre Antwort [Spezifische Einschränkung, z.B. "nicht länger als 200 Wörter ist"].
+- Ihr Output soll in folgendem Format sein: [Gewünschtes Format, z.B. "eine nummerierte Liste mit den Ergebnissen"].
+
+### Persona:
+Beantworten Sie diese Anfrage in der Rolle eines/einer [Spezifische Rolle, z.B. "erfahrenen Redakteurs", "neutralen Datenanalysten"].</div>
+            </div>
+        </div>
+
+        <div id="examples" class="technique">
+            <h2>Muster Prompt Beispiele</h2>
+            <p>Hier finden Sie praktische Beispiele für verschiedene Schwierigkeitsgrade und Anwendungsfälle aus der Hochschulverwaltung.</p>
+
+            <div class="technique" style="margin-left: 20px; border-left: 3px solid #48bb78;">
+                <h3>Use-Case 1 (leicht): Ablaufplan Semesterempfang</h3>
+                <div class="best-for">Einfache Veranstaltungsplanung mit klaren Strukturen</div>
+                
+                <div class="prompt-container">
+                    <button class="copy-button" onclick="copyPrompt(this)">Kopieren</button>
+                    <div class="prompt-box">Du bist ein präziser Assistent für Veranstaltungsorganisation. 
+Deine Aufgabe ist es, aus den folgenden Informationen einen vollständigen Ablaufplan für den Semesterempfang zu erstellen.
+
+Input: Du erhältst folgende Dokumente/Infos.: 
+- Einladung 
+- Gästeliste (Studierende, Professor:innen, Mitarbeitende, externe Gäste) 
+- Anwesenheitslisten 
+- Catering-Infos 
+- Zeitfenster und Raumreservierungen 
+
+Aufgabe:  
+- Erstelle eine kurze Übersicht der Eingaben. 
+- Erstelle einen detaillierten Ablaufplan mit Zeitangaben, Programmpunkten und Verantwortlichkeiten. 
+
+Erwarte eine Ausgabe in folgender Struktur: 
+1. Klare und strukturierte Darstellung (z. B. Listen oder Tabellen) 
+2. Keine langen Fließtexte</div>
+                </div>
+            </div>
+
+            <div class="technique" style="margin-left: 20px; border-left: 3px solid #ed8936;">
+                <h3>Use-Case 2 (mittel): Vorbereitung des Gremiumstagsablaufs</h3>
+                <div class="best-for">Komplexere Gremienorganisation mit Chain-of-Thought Ansatz</div>
+                
+                <div class="prompt-container">
+                    <button class="copy-button" onclick="copyPrompt(this)">Kopieren</button>
+                    <div class="prompt-box">SYSTEM: Du bist ein erfahrener Assistent in der Gremienorganisation, like a seasoned project manager. Bitte arbeite Schritt für Schritt (chain-of-thought) und erkläre deine Herangehensweise klar.
+
+KONTEXT:
+Use Case: Vorbereitung Gremiumstag/Sitzung
+Eingabedokumente: Einladung, Tagesordnung, Vor-/Protokoll, Entscheidungsvorlagen (Weihnachtsschließzeit, KI-Richtlinie, Berufungsverhandlung), Anwesenheitslisten, Catering, Kalenderübersichten.
+Ziel: Detaillierte Ablaufplanung mit Zeitrahmen, Dokumentenvorschlägen, Entscheidungsübersicht, Risiken und To-Do.
+
+AUFGABE:
+Erstelle eine Ablaufplan/Roadmap als Zeitplan mit kritischen Pfaden.
+Listen, welche Dokumente neu erstellt oder aktualisiert werden müssen.
+Formuliere Entscheidungszusammenfassungen (Weihnachtszeit, KI-Richtlinie, Berufungsverhandlung).
+Analysiere Risiken, versteckte Konflikte, offene Punkte.
+Generiere eine To-Do-Liste mit Verantwortlichkeiten und Deadlines.
+
+EINSCHRÄNKUNGEN:
+Tone: professionell, präzise, klar
+Format: Markdown mit folgenden Abschnitten:
+Ablaufplan / Roadmap (mit Uhrzeiten, TOPs, Dauer, Abhängigkeiten)
+Dokumente (neu/aktualisieren)
+Entscheidungsübersicht
+Risiken & Knackpunkte
+To-Do-Liste
+
+AUSGABE:
+Nutze Überschriften wie im Format.
+Beginne jede Sektion mit einem kurzen erklärenden Satz.
+Denke in nummerierten Schritten und schildere, wie du vorgehst.
+Schließe mit einem kurzen Abschluss (z. B. „Fertig mit Vorschlag – gerne Feedback!").</div>
+                </div>
+            </div>
+
+            <div class="technique" style="margin-left: 20px; border-left: 3px solid #e53e3e;">
+                <h3>Use-Case 3 (schwer): Abweichungsanalyse von Geheimhaltungsvereinbarungen</h3>
+                <div class="best-for">Komplexe Vertragsanalyse mit strukturiertem Vergleich - OpenAI Format</div>
+                
+                <div class="prompt-container">
+                    <button class="copy-button" onclick="copyPrompt(this)">Kopieren</button>
+                    <div class="prompt-box">[GOAL]
+Vergleiche einen Vertragsentwurf mit der Standard-Geheimhaltungsvereinbarung der Hochschule Heilbronn für Abschlussarbeiten.
+
+[CONTEXT]
+Hochschule Heilbronn
+Zielgruppe: Verwaltung, Rechtsabteilung, Prüfungsorganisation
+Vertragsart: Geheimhaltungsvereinbarung für Abschlussarbeiten
+
+[SOURCE]
+Standardregelungen sind im Prompt enthalten.
+Vertragsentwurf wird vom Nutzer bereitgestellt.
+
+[EXPECTATIONS]
+1. Prüfe, ob es sich um eine GHV für Abschlussarbeiten handelt.
+2. Falls nicht, gib einen Hinweis auf den Kontext.
+3. Extrahiere alle Regelungen aus dem Vertragsentwurf mit genauen Verweisen (§, Art., Abs.).
+4. Vergleiche diese Regelungen mit den folgenden Standardpunkten.
+5. Erstelle eine Tabelle mit folgenden Spalten:
+   Gegenstand
+   Standardregelung
+   Vertragsentwurf (mit Verweis)
+   Bewertung:✅ = identisch☑️ = Abweichung zugunsten HHN (mit Hinweis)❌ = Abweichung zuungunsten HHN (mit Hinweis)
+6. Liste alle Regelungen im Vertragsentwurf, die nicht in der Standard-GHV enthalten sind.
+
+[PROZESS]
+Nutze folgende Standardregelungen:
+
+| Gegenstand | Standardregelung |
+|------------|------------------|
+| Geltungsbereich | Gilt für jede zukünftige Zusammenarbeit bzgl. Abschlussarbeiten (Bachelor/Master) zwischen HHN und Unternehmen. |
+| Verbotene Handlungen | Keine Offenbarung vertraulicher Informationen gegenüber Dritten; zweckgebundene Nutzung; Offenlegung nur an Personen mit gleichwertiger Geheimhaltungsverpflichtung; Schutz personenbezogener Daten gemäß DSGVO. |
+| Definition vertraulicher Informationen | Informationen, die ausdrücklich als vertraulich bezeichnet sind; Betriebs- und Geschäftsgeheimnisse (§ 3b LVwVfG); Bankgeheimnis, Datenschutz, gesetzliche Geheimhaltungspflichten; wirtschaftlich sensible oder urheberrechtlich geschützte Informationen. |
+| Ausnahmen von der Geheimhaltungspflicht | Informationen sind öffentlich bekannt; Bekannt ohne Verletzung einer Geheimhaltungspflicht; unabhängig entwickelt; schriftlicher Verzicht auf Geheimnisschutz. |
+| Abschlussarbeit | Abschlussarbeit ist grundsätzlich keine vertrauliche Information; Sperrvermerk auf Deckblatt erforderlich für Geheimhaltung; Verwahrung durch Hochschule nach Prüfungsverfahren. |
+| Gestattungen | Zweckmäßige Nutzung und Kopie erlaubt; Offenlegung durch Hochschule im Rahmen des Prüfungsverfahrens erlaubt; gesetzlich/behördlich verpflichtete Offenlegung erlaubt. |
+| Haftung | Sorgfaltspflicht wie bei eigenen Informationen; Haftung begrenzt auf vorhersehbaren Schaden. |
+| Schutzrechte | Keine Rechteübertragung; Schutzrechtsanmeldung vorbehalten. |
+| Inkrafttreten und Laufzeit | Inkrafttreten mit Unterzeichnung; Laufzeit: 5 Jahre ab Abgabe der Abschlussarbeit. |
+| Rechtsverhältnis außerhalb der Vereinbarung | Kein Arbeits-/Dienstverhältnis zwischen Hochschule und Studierenden; Hochschule übernimmt keine Haftung für studentische Geheimhaltungspflichten. |
+| Sonstiges | Schriftform erforderlich für Änderungen; deutsches Recht gilt. |</div>
+                </div>
+
+                <div class="success-factor">
+                    <strong>Warum dieses Beispiel funktioniert:</strong> Klare Struktur mit [GOAL], [CONTEXT], [SOURCE], [EXPECTATIONS] und [PROZESS]. Spezifische Bewertungskriterien (✅☑️❌) und detaillierte Referenztabelle für konsistente Vergleiche.
+                </div>
+            </div>
+        </div>
+
+        <div id="tips" class="tips-section">
+            <h1>Tipps zum Erstellen Ihres ersten KI-Agenten</h1>
+            <p>Das Erstellen eines KI-Agenten kann überwältigend erscheinen, aber ein strukturierter Ansatz macht den Prozess handhabbar. Nachfolgend finden Sie eine schrittweise Anleitung, die Praktikabilität mit ausreichend Details kombiniert, um häufige Fallstricke zu vermeiden.</p>
+
+            <h3>1. Klein und spezifisch anfangen</h3>
+            <p>Wählen Sie ein <strong>sehr kleines und klar definiertes Problem</strong> zum Lösen. Vermeiden Sie es, mit einem "universellen Agenten" zu beginnen – dort bleiben die meisten Anfänger stecken.</p>
+            
+            <div class="example-list">
+                <strong>✅ Beispiele:</strong>
+                <ul>
+                    <li>Einen Arzttermin über eine Krankenhaus-Website buchen</li>
+                    <li>Jobbörsen überwachen und Ihnen passende Ergebnisse senden</li>
+                    <li>Ungelesene E-Mails in Ihrem Posteingang zusammenfassen</li>
+                </ul>
+            </div>
+            
+            <p>Je kleiner und klarer das Problem, desto einfacher ist es, Ihren Agenten zu <strong>entwerfen, testen und debuggen</strong>.</p>
+
+            <h3>2. Ihr LLM wählen</h3>
+            <ul>
+                <li><strong>Gemini</strong> ist ein guter Ausgangspunkt, da es einen kostenlosen API-Schlüssel bereitstellt.</li>
+                <li>Für <strong>datenschutzsensible Aufgaben</strong> sollten Sie lokale LLMs wie <strong>LLaMA</strong> oder <strong>Mistral</strong> in Betracht ziehen.</li>
+            </ul>
+            <p>Wählen Sie ein Modell, das <strong>Reasoning</strong> und <strong>strukturierte Ausgaben</strong> unterstützt, da diese für Agenten unerlässlich sind.</p>
+
+            <h3>3. Tool-Nutzung aktivieren</h3>
+            <p>Ein KI-Agent ist nicht nur ein Chatbot – er braucht Tools, um mit der Außenwelt zu interagieren. Entscheiden Sie früh, welche Aktionen Ihr Agent benötigen wird. Häufige Tools und APIs umfassen:</p>
+            <ul>
+                <li><strong>Web Scraping/Browsing</strong> (Playwright, Puppeteer oder APIs falls verfügbar)</li>
+                <li><strong>E-Mail-APIs</strong> (Gmail API, Outlook API)</li>
+                <li><strong>Kalender-APIs</strong> (Google Calendar, Outlook Calendar)</li>
+                <li><strong>Dateioperationen</strong> (lesen/schreiben, PDFs parsen, etc.)</li>
+            </ul>
+
+            <h3>4. Das Grundgerüst des Workflows erstellen</h3>
+            <p>Vermeiden Sie komplexe Frameworks am Anfang. Konzentrieren Sie sich darauf, die Grundschleife zu erstellen, die alle Agenten antreibt:</p>
+            <ol>
+                <li><strong>Input vom Benutzer</strong> entgegennehmen (die Aufgabe oder das Ziel).</li>
+                <li>Durch das <strong>Modell mit Anweisungen</strong> leiten (System-Prompt).</li>
+                <li>Das <strong>Modell den nächsten Schritt entscheiden</strong> lassen.</li>
+                <li>Falls ein <strong>Tool benötigt wird</strong> (API-Aufruf, Scraping, Dateiaktion), dieses ausführen.</li>
+                <li>Das <strong>Ergebnis zurück in das Modell</strong> einspeisen.</li>
+                <li>Fortfahren, bis die Aufgabe abgeschlossen ist oder eine finale Ausgabe an den Benutzer geliefert wird.</li>
+            </ol>
+            <p>💡 Merken Sie sich: Die Schleife – <strong>Modell → Tool → Ergebnis → Modell</strong> – ist der <strong>Herzschlag</strong> jedes Agenten.</p>
+
+            <h3>5. Speicher vorsichtig hinzufügen</h3>
+            <p>Anfänger denken oft, sie brauchen sofort ein komplexes Speichersystem. Fangen Sie klein an.</p>
+            <ul>
+                <li>Beginnen Sie mit <strong>kurzfristigem Kontext</strong> (die letzten paar Nachrichten).</li>
+                <li>Falls Ihr Agent Persistenz über Ausführungen hinweg benötigt, verwenden Sie eine <strong>Datenbank</strong> oder eine einfache <strong>JSON-Datei</strong>.</li>
+                <li>Fügen Sie <strong>Vektor-Datenbanken</strong> oder erweiterte Retrieval-Systeme nur hinzu, wenn Sie sie wirklich brauchen.</li>
+            </ul>
+
+            <h3>6. In kleinen Schritten iterieren</h3>
+            <p>Ihre erste Version wird nicht perfekt sein – und das ist zu erwarten.</p>
+            <ul>
+                <li>Lassen Sie Ihren Agenten <strong>echte Aufgaben</strong> ausführen.</li>
+                <li>Beobachten Sie, wo er bricht oder versagt.</li>
+                <li><strong>Beheben Sie das Problem</strong> und versuchen Sie es erneut.</li>
+            </ul>
+            <p>Jeder zuverlässige Agent durchläuft <strong>Dutzende von Iterationszyklen</strong>, bevor er verlässlich wird.</p>
+
+            <h3>7. Den Umfang kontrollieren</h3>
+            <p>Die Versuchung, mehr Features hinzuzufügen, ist stark – widerstehen Sie ihr.</p>
+            <ul>
+                <li>Konzentrieren Sie sich darauf, <strong>einen gut funktionierenden Agenten</strong> zu erstellen, anstatt einen kaputten "universellen Agenten".</li>
+                <li>Falls Ihr Agent mehr als <strong>10 Tools</strong> handhaben muss, unterteilen Sie ihn in <strong>Subagenten</strong>, die jeweils für einen kleineren Bereich verantwortlich sind.</li>
+            </ul>
+            <p>Ein enger, gut funktionierender Agent ist weitaus nützlicher als ein breiter, aber unzuverlässiger.</p>
+        </div>
+    </div>
+
+    <script>
+        function copyPrompt(button) {
+            const promptBox = button.nextElementSibling;
+            const text = promptBox.textContent;
+            
+            navigator.clipboard.writeText(text).then(function() {
+                button.textContent = 'Kopiert!';
+                button.classList.add('copied');
+                setTimeout(function() {
+                    button.textContent = 'Kopieren';
+                    button.classList.remove('copied');
+                }, 2000);
+            }, function(err) {
+                console.error('Fehler beim Kopieren: ', err);
+                button.textContent = 'Fehler';
+                setTimeout(function() {
+                    button.textContent = 'Kopieren';
+                }, 2000);
+            });
+        }
+
+        // Smooth scrolling for navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
